@@ -20,4 +20,6 @@ public interface PedidoUserCase {
     Page<PedidoEntity> listar(PedidoFilter filtro, int pagina, int tamanhoPagina);
 
     void excluir(PedidoEntity pedidoEntity);
+
+    void atualizaPedido(PedidoEntity pedidoEntity);
 }

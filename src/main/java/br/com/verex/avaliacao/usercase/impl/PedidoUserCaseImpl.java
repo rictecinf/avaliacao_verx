@@ -68,4 +68,9 @@ public class PedidoUserCaseImpl implements PedidoUserCase {
                 .build()
         );
     }
+
+    @Override
+    public void atualizaPedido(PedidoEntity pedidoEntity) {
+        pedidoGaeteway.save(pedidoEntity);
+    }
 }

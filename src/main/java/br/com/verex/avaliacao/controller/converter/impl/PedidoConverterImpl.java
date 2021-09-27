@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -29,7 +30,16 @@ public class PedidoConverterImpl implements PedidoConverter {
     public PedidoEntity convertPedidoVOToEntity(PedidoVO pedidoVO) {
         return PedidoEntity.builder()
                 .id(pedidoVO.getId())
-                .dataCriacao(pedidoVO.getDataCadastro())
+                .dataCriacao(Optional.ofNullable(pedidoVO.getDataCadastro()).orElse(null))
+                .dataVencimento(pedidoVO.getDataVencimento())
+                .build();
+    }
+
+    @Override
+    public PedidoEntity convertPedidoVOToEntity(Optional<String> idPedido, PedidoVO pedidoVO) {
+        return PedidoEntity.builder()
+                .id(idPedido.orElse(pedidoVO.getId()))
+                .dataCriacao(Optional.ofNullable(pedidoVO.getDataCadastro()).orElse(null))
                 .dataVencimento(pedidoVO.getDataVencimento())
                 .build();
     }

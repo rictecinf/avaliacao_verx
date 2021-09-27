@@ -2,18 +2,24 @@ package br.com.verex.avaliacao.controller;
 
 import br.com.verex.avaliacao.controller.converter.PedidoConverter;
 import br.com.verex.avaliacao.controller.shared.PedidoFilter;
-import br.com.verex.avaliacao.controller.shared.VencimentoPedidoVO;
 import br.com.verex.avaliacao.controller.shared.PedidoVO;
 import br.com.verex.avaliacao.controller.shared.ServiceResponse;
+import br.com.verex.avaliacao.controller.shared.VencimentoPedidoVO;
 import br.com.verex.avaliacao.entity.DomainException;
 import br.com.verex.avaliacao.entity.PedidoEntity;
 import br.com.verex.avaliacao.usercase.PedidoUserCase;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.*;
+
+@Validated
 @RestController
 @RequestMapping("pedidos")
 @AllArgsConstructor
@@ -33,6 +39,15 @@ public class PedidoController {
     @GetMapping
     public ResponseEntity<ServiceResponse<Page<PedidoVO>>> listar(PedidoFilter filtro , @RequestParam int pagina, @RequestParam(defaultValue = "10") int tamanhoPagina ) {
         final Page<PedidoEntity> listar = pedidoUserCase.listar(filtro, pagina, tamanhoPagina);
+        listar.getContent()
+                .stream()
+                .collect(Collectors
+                        .groupingBy(PedidoEntity::getDataVencimento,
+                        collectingAndThen(toList(),
+                                list->{
+                                    final Long total = list.stream().collect(counting());
+                                    return  total;
+                                })));
         final Page<PedidoVO> pedidoVOS = pedidoConverter.convertPageToVOList(listar);
 
         return new ServiceResponse<Page<PedidoVO>>().okResponse(pedidoVOS);
@@ -42,12 +57,15 @@ public class PedidoController {
     public ResponseEntity<ServiceResponse<Void>> criar(@RequestBody PedidoVO pedido) {
         final PedidoEntity pedidoEntity = pedidoConverter.convertPedidoVOToEntity(pedido);
         pedidoUserCase.criar(pedidoEntity);
+        //return new ServiceResponse<Void>().okOrNoContent(null);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{idPedido}")
     public ResponseEntity<ServiceResponse<Void>> alterar(@PathVariable("idPedido") String idPedido, @RequestBody PedidoVO pedido) {
 
+        final PedidoEntity pedidoEntity = pedidoConverter.convertPedidoVOToEntity(Optional.ofNullable(null) ,pedido);
+        pedidoUserCase.atualizaPedido(pedidoEntity.toBuilder().id(idPedido).build());
         return ResponseEntity.noContent().build();
     }
 
